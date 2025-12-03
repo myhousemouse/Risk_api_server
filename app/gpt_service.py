@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from openai import OpenAI
 from .models import AnalysisMethod, Question, Answer
 from .constants import METHOD_DESCRIPTIONS
@@ -124,7 +124,7 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
         self,
         business_name: str,
         business_description: str,
-        investment_amount: int,
+        investment_amount: Optional[int],
         methods: List[AnalysisMethod]
     ) -> List[Question]:
         """
@@ -190,11 +190,13 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
         self,
         business_name: str,
         business_description: str,
-        investment_amount: int,
+        investment_amount: Optional[int],
         method: AnalysisMethod,
         method_description: str
     ) -> str:
         """질문 생성을 위한 프롬프트 작성"""
+        
+        investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
         
         return f"""
 당신은 **20년 경력의 창업 컨설팅 전문가**이자 **비즈니스 리스크 분석 전문가**입니다.
@@ -206,7 +208,7 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
 **사업 정보:**
 - 사업명: {business_name}
 - 사업 내용: {business_description}
-- 투자금액: {investment_amount:,}원
+- 투자금액: {investment_info}
 
 **분석 기법:** {method.value}
 - 설명: {method_description}
@@ -331,7 +333,7 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
         self,
         business_name: str,
         business_description: str,
-        investment_amount: int,
+        investment_amount: Optional[int],
         methods: List[AnalysisMethod],
         questions: List[Question],
         answers: List[Answer],
@@ -405,7 +407,7 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
         self,
         business_name: str,
         business_description: str,
-        investment_amount: int,
+        investment_amount: Optional[int],
         methods: List[AnalysisMethod],
         questions: List[Question],
         qa_map: Dict[str, str]
@@ -427,13 +429,15 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
             "기본": "발생가능성→O, 심각도→S, 발견가능성→D"
         }
         
+        investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
+        
         return f"""
 다음 사업에 대한 OSD 기반 종합 리스크 분석 보고서를 작성해주세요.
 
 **사업 정보:**
 - 사업명: {business_name}
 - 사업 내용: {business_description}
-- 투자금액: {investment_amount:,}원
+- 투자금액: {investment_info}
 
 **사용된 분석 기법:**
 {', '.join([m.value for m in methods])}
@@ -478,7 +482,7 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
         self,
         business_name: str,
         business_description: str,
-        investment_amount: int,
+        investment_amount: Optional[int],
         methods: List[AnalysisMethod],
         questions: List[Question],
         qa_map: Dict[str, str]
@@ -491,13 +495,15 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
             answer = qa_map.get(question.question_id, "답변 없음")
             qa_text += f"\n[{question.method.value}] Q: {question.question_text}\nA: {answer}\n"
         
+        investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
+        
         return f"""
 다음 사업에 대한 OSD 기반 종합 리스크 분석 보고서를 작성해주세요.
 
 **사업 정보:**
 - 사업명: {business_name}
 - 사업 내용: {business_description}
-- 투자금액: {investment_amount:,}원
+- 투자금액: {investment_info}
 
 **사용된 분석 기법:**
 {', '.join([m.value for m in methods])}

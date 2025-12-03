@@ -59,7 +59,7 @@ class InitialBusinessInput(BaseModel):
     """초기 사업 정보"""
     business_name: str = Field(..., description="사업명", min_length=1, max_length=200)
     business_description: str = Field(..., description="사업 내용", min_length=10, max_length=2000)
-    investment_amount: int = Field(..., description="투자금액 (원)", gt=0)
+    investment_amount: Optional[int] = Field(None, description="투자금액 (원, 선택입력)", ge=0)
 
 
 # 1단계 응답: 업종 분류 및 분석 기법 선택
@@ -168,8 +168,8 @@ class FinalRiskReport(BaseModel):
     risk_grade: str = Field(..., description="리스크 등급 (A~F)")
     method_results: List[MethodAnalysisResult] = Field(..., description="분석 기법별 상세 결과")
     
-    # 2. 현금 손실액 측정
-    cash_loss_analysis: CashLossAnalysis = Field(..., description="현금 손실액 분석")
+    # 2. 현금 손실액 측정 (투자금액이 입력된 경우만)
+    cash_loss_analysis: Optional[CashLossAnalysis] = Field(None, description="현금 손실액 분석 (투자금액 입력 시)")
     
     # 3. AI 조언 요약
     ai_recommendations: List[AIRecommendation] = Field(..., description="AI 조언 목록 (우선순위별)")

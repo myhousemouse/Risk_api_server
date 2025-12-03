@@ -99,7 +99,7 @@ class RiskAnalysisService:
         session_data = {
             "business_name": business_input.business_name,
             "business_description": business_input.business_description,
-            "investment_amount": business_input.investment_amount,
+            "investment_amount": business_input.investment_amount if business_input.investment_amount and business_input.investment_amount > 0 else None,
             "categories": [cat.dict() for cat in categories],
             "methods": [method.value for method in methods],
             "stage": "initial_analyzed"
@@ -208,19 +208,23 @@ class RiskAnalysisService:
         # 2. 종합 리스크 점수 계산 (OSD 엔진 사용)
         overall_risk_score, overall_risk_level, risk_grade = OSDRiskEngine.calculate_overall_risk(all_osd_scores)
         
-        # 3. 현금 손실액 분석 (비용 분석 엔진 사용)
-        cost_analysis = CostAnalysisEngine.calculate_total_expected_loss(
-            all_osd_scores,
-            investment_amount,
-            industry_category
-        )
-        
-        cash_loss_analysis = CashLossAnalysis(
-            total_expected_loss=cost_analysis["total_expected_loss"],
-            cost_breakdown=CostBreakdown(**cost_analysis["cost_breakdown"]),
-            loss_by_risk=cost_analysis["loss_by_risk"],
-            probability_weighted_loss=cost_analysis["probability_weighted_loss"]
-        )
+        # 3. 현금 손실액 분석 (비용 분석 엔진 사용 - 투자금액이 있을 경우만)
+        if investment_amount:
+            cost_analysis = CostAnalysisEngine.calculate_total_expected_loss(
+                all_osd_scores,
+                investment_amount,
+                industry_category
+            )
+            
+            cash_loss_analysis = CashLossAnalysis(
+                total_expected_loss=cost_analysis["total_expected_loss"],
+                cost_breakdown=CostBreakdown(**cost_analysis["cost_breakdown"]),
+                loss_by_risk=cost_analysis["loss_by_risk"],
+                probability_weighted_loss=cost_analysis["probability_weighted_loss"]
+            )
+        else:
+            # 투자금액이 없는 경우 None으로 설정
+            cash_loss_analysis = None
         
         # 4. AI 조언 구조화
         ai_recommendations = [
