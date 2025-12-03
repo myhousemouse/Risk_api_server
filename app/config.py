@@ -1,14 +1,16 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
+import os
 
 
 class Settings(BaseSettings):
     """애플리케이션 설정"""
     
     # OpenAI
-    openai_api_key: str
+    openai_api_key: str = ""
     
     # API
-    api_port: int = 8000
+    api_port: int = int(os.getenv("PORT", "8000"))
     api_host: str = "0.0.0.0"
     
     # 환경

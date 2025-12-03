@@ -43,7 +43,9 @@ async def root():
     return {
         "message": "Risk Manager API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "openai_configured": bool(settings.openai_api_key),
+        "environment": settings.environment
     }
 
 
