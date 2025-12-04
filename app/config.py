@@ -6,8 +6,8 @@ import os
 class Settings(BaseSettings):
     """애플리케이션 설정"""
     
-    # OpenAI
-    openai_api_key: str = ""
+    # Google Gemini
+    gemini_api_key: str = ""
     
     # API
     api_port: int = int(os.getenv("PORT", "8000"))

@@ -33,7 +33,7 @@ app.add_middleware(
 
 # 서비스 초기화
 session_store = SessionStore()
-gpt_service = GPTService(api_key=settings.openai_api_key)
+gpt_service = GPTService(api_key=settings.gemini_api_key)
 risk_service = RiskAnalysisService(gpt_service, session_store)
 
 
@@ -44,7 +44,7 @@ async def root():
         "message": "Risk Manager API",
         "version": "1.0.0",
         "docs": "/docs",
-        "openai_configured": bool(settings.openai_api_key),
+        "gemini_configured": bool(settings.gemini_api_key),
         "environment": settings.environment
     }
 

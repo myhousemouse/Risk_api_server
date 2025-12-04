@@ -5,7 +5,7 @@
 Zeabur 대시보드에서 다음 환경 변수를 설정하세요:
 
 ```
-OPENAI_API_KEY=sk-your-actual-openai-api-key
+GEMINI_API_KEY=your-actual-gemini-api-key
 ENVIRONMENT=production
 PORT=8000
 ```
@@ -34,7 +34,7 @@ PORT=8000
 1. GitHub에 코드 푸시
 2. Zeabur에서 새 프로젝트 생성
 3. GitHub 저장소 연결
-4. 환경 변수 설정 (OPENAI_API_KEY 필수)
+4. 환경 변수 설정 (GEMINI_API_KEY 필수)
 5. 자동 배포 시작
 
 ## 5. 배포 후 확인
@@ -53,6 +53,13 @@ PORT=8000
 
 ## 7. 주의사항
 
-- OPENAI_API_KEY는 반드시 설정해야 합니다
+- GEMINI_API_KEY는 반드시 설정해야 합니다
 - .env 파일은 Git에 포함되지 않습니다 (.gitignore 설정됨)
 - 프로덕션 환경에서는 CORS 설정을 제한하는 것을 권장합니다
+
+## 8. Gemini API 키 발급 방법
+
+1. https://aistudio.google.com/app/apikey 접속
+2. "Create API Key" 클릭
+3. 발급된 API 키를 복사
+4. Zeabur 환경 변수에 `GEMINI_API_KEY`로 설정

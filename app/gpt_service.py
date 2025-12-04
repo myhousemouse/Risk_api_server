@@ -1,24 +1,24 @@
 import os
 from typing import List, Dict, Any, Optional
-from openai import OpenAI
+import google.generativeai as genai
 from .models import AnalysisMethod, Question, Answer
 from .constants import METHOD_DESCRIPTIONS
 
 
 class GPTService:
-    """OpenAI GPT API 연동 서비스"""
+    """Google Gemini API 연동 서비스"""
     
     def __init__(self, api_key: str = None):
         """
         Args:
-            api_key: OpenAI API 키 (없으면 환경변수에서 읽음)
+            api_key: Google Gemini API 키 (없으면 환경변수에서 읽음)
         """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY가 설정되지 않았습니다.")
+            raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다.")
         
-        self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-4o-mini"  # 또는 "gpt-4"
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel('gemini-pro')
     
     def validate_business_input(self, business_description: str) -> Dict[str, Any]:
         """
@@ -58,23 +58,19 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
 """
         
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "당신은 비즈니스 아이디어를 정확하게 검증하는 전문가입니다. 주어진 형식을 엄격히 따라 답변해주세요."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.3,
-                max_tokens=500
+            full_prompt = f"""당신은 비즈니스 아이디어를 정확하게 검증하는 전문가입니다. 주어진 형식을 엄격히 따라 답변해주세요.
+
+{prompt}"""
+            
+            response = self.model.generate_content(
+                full_prompt,
+                generation_config={
+                    'temperature': 0.3,
+                    'max_output_tokens': 500,
+                }
             )
             
-            result_text = response.choices[0].message.content.strip()
+            result_text = response.text.strip()
             
             # 응답 파싱
             is_valid = False
@@ -154,24 +150,20 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
             )
             
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "당신은 비즈니스 리스크 분석 전문가입니다. 사업의 리스크를 파악하기 위한 핵심 질문들을 생성해주세요."
-                        },
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    temperature=0.7,
-                    max_tokens=2000
+                full_prompt = f"""당신은 비즈니스 리스크 분석 전문가입니다. 사업의 리스크를 파악하기 위한 핵심 질문들을 생성해주세요.
+
+{prompt}"""
+                
+                response = self.model.generate_content(
+                    full_prompt,
+                    generation_config={
+                        'temperature': 0.7,
+                        'max_output_tokens': 2000,
+                    }
                 )
                 
-                # GPT 응답 파싱
-                generated_text = response.choices[0].message.content
+                # Gemini 응답 파싱
+                generated_text = response.text
                 method_questions = self._parse_questions_from_gpt_response(
                     generated_text, 
                     method, 
@@ -367,12 +359,7 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
         )
         
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """당신은 **FMEA(Failure Mode and Effects Analysis) 분야에서 20년 이상 경력을 쌓은 리스크 분석 전문가**입니다.
+            system_instruction = """당신은 **FMEA(Failure Mode and Effects Analysis) 분야에서 20년 이상 경력을 쌓은 리스크 분석 전문가**입니다.
 
 자동차, 항공, 제조업 등 고신뢰성 산업에서 수천 건의 FMEA를 수행하며 OSD(Occurrence×Severity×Detection) 방법론의 대가가 되었습니다.
 
@@ -386,21 +373,24 @@ Q3: 경쟁사 대비 우위는 무엇인가요? | choice | 가격경쟁력,기�
 4. 20년 경력자의 통찰력으로 숨겨진 리스크 발견
 
 전문가답게 신중하고 정확하게 분석해주세요."""
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.5,
-                max_tokens=4000
+
+            full_prompt = f"""{system_instruction}
+
+{prompt}"""
+            
+            response = self.model.generate_content(
+                full_prompt,
+                generation_config={
+                    'temperature': 0.5,
+                    'max_output_tokens': 4000,
+                }
             )
             
-            report_text = response.choices[0].message.content
+            report_text = response.text
             return self._parse_osd_report(report_text, methods)
             
         except Exception as e:
-            print(f"GPT API 오류: {e}")
+            print(f"Gemini API 오류: {e}")
             return self._get_fallback_osd_report(methods)
     
     def _create_report_generation_prompt(
