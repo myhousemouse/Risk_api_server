@@ -169,14 +169,18 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
                     method, 
                     f"method{i+1}"
                 )
+                # 각 기법당 최대 3개로 제한
+                method_questions = method_questions[:3]
                 questions.extend(method_questions)
                 
             except Exception as e:
                 print(f"GPT API 오류: {e}")
                 # 폴백: 기본 질문 사용
-                questions.extend(self._get_fallback_questions(method, f"method{i+1}"))
+                fallback_questions = self._get_fallback_questions(method, f"method{i+1}")
+                questions.extend(fallback_questions[:3])  # 폴백도 최대 3개
         
-        return questions
+        # 최종적으로 총 5개로 제한
+        return questions[:5]
     
     def _create_question_generation_prompt(
         self,
@@ -212,7 +216,7 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
 
 **요구사항:**
 1. {method.value} 기법의 핵심 요소를 파악할 수 있는 질문들을 만들어주세요
-2. **정확히 2~3개의 질문만** 생성해주세요 (이 기법으로 반드시 파악해야 할 핵심만)
+2. **절대로 2개 또는 3개의 질문만 생성하세요. 그 이상은 절대 안 됩니다!**
 3. **창업 전문가 관점**에서 실패 가능성이 높은 영역을 집중적으로 질문하세요
 4. **초보 창업자가 쉽게 이해하고 답변할 수 있도록** 작성해주세요:
    - 어려운 전문 용어 사용 금지 (예: CAC, LTV, ROI, 시너지, 밸류체인 등)
