@@ -18,7 +18,7 @@ class GPTService:
             raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다.")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
     
     def validate_business_input(self, business_description: str) -> Dict[str, Any]:
         """
