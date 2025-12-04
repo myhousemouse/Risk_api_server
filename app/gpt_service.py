@@ -194,6 +194,9 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
         
         investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
         
+        # 업종별 맞춤 가이드
+        industry_context = self._get_industry_specific_context(business_description, method)
+        
         return f"""
 당신은 **20년 경력의 창업 컨설팅 전문가**이자 **비즈니스 리스크 분석 전문가**입니다.
 수백 개의 스타트업을 성공으로 이끈 경험을 바탕으로, 예비 창업자들이 간과하기 쉬운 
@@ -213,6 +216,8 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
 
 **분석 기법:** {method.value}
 - 설명: {method_description}
+
+{industry_context}
 
 **요구사항:**
 1. {method.value} 기법의 핵심 요소를 파악할 수 있는 질문들을 만들어주세요
@@ -294,6 +299,60 @@ Q4: 지금 가장 부족한 것은 무엇인가요? | choice | 사람,돈,기술
                 continue
         
         return questions
+    
+    def _get_industry_specific_context(self, business_description: str, method: AnalysisMethod) -> str:
+        """업종별 특화된 질문 가이드 제공"""
+        description_lower = business_description.lower()
+        
+        # 업종 감지
+        if any(kw in description_lower for kw in ["앱", "소프트웨어", "플랫폼", "IT", "개발", "스타트업"]):
+            return """
+**이 사업은 IT/앱/플랫폼 분야입니다. 다음 관점에서 질문하세요:**
+- 기술 개발 가능성 (개발 인력, 기술 난이도)
+- 사용자 확보 전략 (마케팅, 바이럴)
+- 경쟁 앱/서비스와의 차별점
+- 수익화 방법 (광고, 구독, 수수료)
+"""
+        elif any(kw in description_lower for kw in ["교육", "학습", "강의", "학원", "에듀테크"]):
+            return """
+**이 사업은 교육/학습 분야입니다. 다음 관점에서 질문하세요:**
+- 학습 효과 측정 방법
+- 강사/교육 콘텐츠 확보 계획
+- 학생/수강생 모집 전략
+- 경쟁 교육 기관과의 차이점
+"""
+        elif any(kw in description_lower for kw in ["제조", "생산", "공장", "설비", "제품 생산"]):
+            return """
+**이 사업은 제조/생산 분야입니다. 다음 관점에서 질문하세요:**
+- 생산 설비 확보 계획
+- 불량률 관리 방안
+- 원자재 공급망 안정성
+- 생산 일정 및 납품 리스크
+"""
+        elif any(kw in description_lower for kw in ["외식", "음식점", "카페", "레스토랑", "서비스"]):
+            return """
+**이 사업은 서비스/외식 분야입니다. 다음 관점에서 질문하세요:**
+- 입지 선정 (유동인구, 접근성)
+- 재료 공급 및 원가 관리
+- 위생 및 품질 관리
+- 고객 재방문율 확보 전략
+"""
+        elif any(kw in description_lower for kw in ["마케팅", "광고", "브랜드", "홍보"]):
+            return """
+**이 사업은 마케팅/광고 분야입니다. 다음 관점에서 질문하세요:**
+- 타겟 고객층 명확성
+- 마케팅 채널 및 예산 배분
+- 브랜드 차별화 전략
+- 효과 측정 방법 (ROI)
+"""
+        else:
+            return """
+**일반 비즈니스입니다. 다음 관점에서 질문하세요:**
+- 목표 고객이 명확한가
+- 수익 모델이 검증되었는가
+- 경쟁자 대비 우위가 있는가
+- 초기 자금으로 실행 가능한가
+"""
     
     def _get_fallback_questions(
         self, 
