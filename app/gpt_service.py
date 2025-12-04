@@ -18,7 +18,19 @@ class GPTService:
             raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다.")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        # Safety settings - 비즈니스 분석 내용이 차단되지 않도록 설정
+        self.safety_settings = [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        ]
+        
+        self.model = genai.GenerativeModel(
+            'gemini-2.5-flash',
+            safety_settings=self.safety_settings
+        )
     
     def validate_business_input(self, business_description: str) -> Dict[str, Any]:
         """
@@ -67,8 +79,14 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
                 generation_config={
                     'temperature': 0.3,
                     'max_output_tokens': 500,
-                }
+                },
+                safety_settings=self.safety_settings
             )
+            
+            # 안전 필터로 차단된 경우 처리
+            if not response.candidates or not response.candidates[0].content.parts:
+                print(f"입력 검증 응답이 차단됨: finish_reason={response.candidates[0].finish_reason if response.candidates else 'N/A'}")
+                raise Exception("Response blocked by safety filters")
             
             result_text = response.text.strip()
             
@@ -159,8 +177,14 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
                     generation_config={
                         'temperature': 0.7,
                         'max_output_tokens': 2000,
-                    }
+                    },
+                    safety_settings=self.safety_settings
                 )
+                
+                # 안전 필터로 차단된 경우 처리
+                if not response.candidates or not response.candidates[0].content.parts:
+                    print(f"응답이 안전 필터에 차단됨: finish_reason={response.candidates[0].finish_reason if response.candidates else 'N/A'}")
+                    raise Exception("Response blocked by safety filters")
                 
                 # Gemini 응답 파싱
                 generated_text = response.text
@@ -452,8 +476,14 @@ Q1: [질문] | [text/number/choice] | [선택지]
                 generation_config={
                     'temperature': 0.5,
                     'max_output_tokens': 4000,
-                }
+                },
+                safety_settings=self.safety_settings
             )
+            
+            # 안전 필터로 차단된 경우 처리
+            if not response.candidates or not response.candidates[0].content.parts:
+                print(f"보고서 생성 응답이 차단됨: finish_reason={response.candidates[0].finish_reason if response.candidates else 'N/A'}")
+                raise Exception("Response blocked by safety filters")
             
             report_text = response.text
             return self._parse_osd_report(report_text, methods)
