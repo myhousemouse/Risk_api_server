@@ -70,7 +70,7 @@ class RiskAnalysisService:
         """
         # 1차 입력 검증: 비즈니스 아이디어인지 확인
         validation_result = self.gpt_service.validate_business_input(
-            business_input.concept
+            business_input.businessDescription
         )
         
         if not validation_result["is_valid"]:
@@ -82,15 +82,20 @@ class RiskAnalysisService:
         
         # 업종 분류
         categories = self.classifier.classify_business(
-            business_input.concept
+            business_input.businessDescription
         )
         
         # 분석 기법 선택
         methods = self.classifier.select_analysis_methods(categories)
         
+        # 선택 이유 생성
+        reasoning = f"{categories[0].category_name} 업종으로 분류되어 {methods[0].value}과 {methods[1].value} 분석 기법이 선택되었습니다."
+        
         # 세션 생성
         session_data = {
-            "concept": business_input.concept,
+            "business_name": business_input.businessName,
+            "business_description": business_input.businessDescription,
+            "investment_amount": business_input.investmentAmount,
             "categories": [cat.dict() for cat in categories],
             "methods": [method.value for method in methods],
             "stage": "initial_analyzed"
@@ -99,7 +104,9 @@ class RiskAnalysisService:
         
         return InitialAnalysisResponse(
             session_id=session_id,
-            selected_methods=methods
+            matched_categories=categories,
+            selected_methods=methods,
+            reasoning=reasoning
         )
     
     def generate_questions(
@@ -114,7 +121,9 @@ class RiskAnalysisService:
             raise ValueError("유효하지 않은 세션 ID입니다.")
         
         # 세션에서 정보 추출
-        concept = session["concept"]
+        business_name = session["business_name"]
+        business_description = session["business_description"]
+        investment_amount = session.get("investment_amount")
         
         # 문자열을 AnalysisMethod enum으로 변환
         from .models import AnalysisMethod
@@ -122,7 +131,9 @@ class RiskAnalysisService:
         
         # GPT로 질문 생성
         questions = self.gpt_service.generate_questions(
-            concept,
+            business_name,
+            business_description,
+            investment_amount,
             methods
         )
         
@@ -151,7 +162,9 @@ class RiskAnalysisService:
             raise ValueError("유효하지 않은 세션 ID입니다.")
         
         # 세션에서 정보 추출
-        concept = session["concept"]
+        business_name = session["business_name"]
+        business_description = session["business_description"]
+        investment_amount = session.get("investment_amount")
         
         # 업종 카테고리 추출
         categories_data = session.get("categories", [])
@@ -164,7 +177,9 @@ class RiskAnalysisService:
         
         # GPT로 OSD 기반 리스크 보고서 생성
         gpt_report = self.gpt_service.generate_risk_report(
-            concept,
+            business_name,
+            business_description,
+            investment_amount,
             methods,
             questions,
             answer_request.answers,

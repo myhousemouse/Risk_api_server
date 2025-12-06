@@ -57,7 +57,9 @@ class AnalysisMethod(str, Enum):
 # 1단계: 초기 사업 정보 입력
 class InitialBusinessInput(BaseModel):
     """초기 사업 정보"""
-    concept: str = Field(..., description="사업 아이디어/컨셉", min_length=1, max_length=2000)
+    businessName: str = Field(..., description="사업명", min_length=1, max_length=200)
+    businessDescription: str = Field(..., description="사업 설명", min_length=1, max_length=2000)
+    investmentAmount: Optional[int] = Field(None, description="투자금액 (원)", ge=0)
 
 
 # 1단계 응답: 업종 분류 및 분석 기법 선택
@@ -71,7 +73,9 @@ class IndustryCategoryInfo(BaseModel):
 class InitialAnalysisResponse(BaseModel):
     """초기 분석 응답"""
     session_id: str = Field(..., description="세션 ID")
+    matched_categories: List[IndustryCategoryInfo] = Field(..., description="매칭된 업종 카테고리")
     selected_methods: List[AnalysisMethod] = Field(..., description="선택된 분석 기법 (2개)")
+    reasoning: str = Field(..., description="선택 이유")
 
 
 # 3단계: 질문 생성 요청
