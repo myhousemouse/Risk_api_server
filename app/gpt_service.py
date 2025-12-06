@@ -422,7 +422,6 @@ Q3: [질문] | text |
             questions,
             qa_map
         )
-        )
         
         try:
             system_instruction = """당신은 **FMEA(Failure Mode and Effects Analysis) 분야에서 20년 이상 경력을 쌓은 리스크 분석 전문가**입니다.
