@@ -11,24 +11,34 @@
 
 ## 워크플로우
 
-### 1단계: 사업 컨셉 입력
-사용자가 간단하게 사업 아이디어/컨셉만 입력
+### 1단계: 초기 사업 정보 입력
+사용자가 사업명, 사업 설명, 투자금액을 입력
 
 **요청 예시:**
 ```json
 {
-  "concept": "대학생 맞춤형 중고 교재 거래 플랫폼 앱"
+  "businessName": "대학생 중고 교재 플랫폼",
+  "businessDescription": "대학생들이 중고 교재를 사고팔 수 있는 모바일 앱",
+  "investmentAmount": 50000000
 }
 ```
 
-### 2단계: 분석 기법 자동 선택
-AI가 최적의 분석 기법 2개를 자동 선택 (SWOT, Lean Canvas 등)
+### 2단계: 업종 분류 및 분석 기법 선택
+AI가 업종을 자동 분류하고 최적의 분석 기법 2개를 선택 (SWOT, Lean Canvas 등)
 
 **응답 예시:**
 ```json
 {
   "session_id": "550e8400-e29b-41d4-a716-446655440000",
-  "selected_methods": ["Lean Canvas", "SWOT"]
+  "matched_categories": [
+    {
+      "category_id": "it_startup",
+      "category_name": "IT/스타트업",
+      "confidence_score": 95.0
+    }
+  ],
+  "selected_methods": ["Lean Canvas", "SWOT"],
+  "reasoning": "IT/스타트업 업종으로 분류되어 Lean Canvas과 SWOT 분석 기법이 선택되었습니다."
 }
 ```
 
@@ -73,7 +83,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 **Request:**
 ```json
 {
-  "concept": "사업 아이디어/컨셉"
+  "businessName": "사업명",
+  "businessDescription": "사업 설명",
+  "investmentAmount": 50000000
 }
 ```
 
@@ -81,7 +93,15 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```json
 {
   "session_id": "uuid",
-  "selected_methods": ["Method1", "Method2"]
+  "matched_categories": [
+    {
+      "category_id": "it_startup",
+      "category_name": "IT/스타트업",
+      "confidence_score": 95.0
+    }
+  ],
+  "selected_methods": ["Method1", "Method2"],
+  "reasoning": "선택 이유"
 }
 ```
 
