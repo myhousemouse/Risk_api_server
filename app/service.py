@@ -88,13 +88,6 @@ class RiskAnalysisService:
         # 분석 기법 선택
         methods = self.classifier.select_analysis_methods(categories)
         
-        # 분류 근거 생성
-        reasoning = self.classifier.generate_classification_reasoning(
-            business_input.concept,
-            categories,
-            methods
-        )
-        
         # 세션 생성
         session_data = {
             "concept": business_input.concept,
@@ -106,9 +99,7 @@ class RiskAnalysisService:
         
         return InitialAnalysisResponse(
             session_id=session_id,
-            matched_categories=categories,
-            selected_methods=methods,
-            reasoning=reasoning
+            selected_methods=methods
         )
     
     def generate_questions(

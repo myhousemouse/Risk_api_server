@@ -71,9 +71,7 @@ class IndustryCategoryInfo(BaseModel):
 class InitialAnalysisResponse(BaseModel):
     """초기 분석 응답"""
     session_id: str = Field(..., description="세션 ID")
-    matched_categories: List[IndustryCategoryInfo] = Field(..., description="매칭된 업종 카테고리 (최대 2개)")
     selected_methods: List[AnalysisMethod] = Field(..., description="선택된 분석 기법 (2개)")
-    reasoning: str = Field(..., description="분류 근거 설명")
 
 
 # 3단계: 질문 생성 요청
