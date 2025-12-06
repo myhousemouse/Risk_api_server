@@ -57,9 +57,7 @@ class AnalysisMethod(str, Enum):
 # 1단계: 초기 사업 정보 입력
 class InitialBusinessInput(BaseModel):
     """초기 사업 정보"""
-    business_name: str = Field(..., description="사업명", min_length=1, max_length=200)
-    business_description: str = Field(..., description="사업 내용", min_length=10, max_length=2000)
-    investment_amount: Optional[int] = Field(None, description="투자금액 (원, 선택입력)", ge=0)
+    concept: str = Field(..., description="사업 아이디어/컨셉", min_length=1, max_length=2000)
 
 
 # 1단계 응답: 업종 분류 및 분석 기법 선택

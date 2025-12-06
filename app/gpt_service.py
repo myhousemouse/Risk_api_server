@@ -138,18 +138,14 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
     
     def generate_questions(
         self,
-        business_name: str,
-        business_description: str,
-        investment_amount: Optional[int],
+        concept: str,
         methods: List[AnalysisMethod]
     ) -> List[Question]:
         """
         선택된 분석 기법에 따라 맞춤형 질문 생성
         
         Args:
-            business_name: 사업명
-            business_description: 사업 내용
-            investment_amount: 투자금액
+            concept: 사업 아이디어/컨셉
             methods: 선택된 분석 기법 (2개)
             
         Returns:
@@ -162,9 +158,7 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
             method_description = METHOD_DESCRIPTIONS.get(method, "")
             
             prompt = self._create_question_generation_prompt(
-                business_name,
-                business_description,
-                investment_amount,
+                concept,
                 method,
                 method_description
             )
@@ -210,24 +204,20 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
     
     def _create_question_generation_prompt(
         self,
-        business_name: str,
-        business_description: str,
-        investment_amount: Optional[int],
+        concept: str,
         method: AnalysisMethod,
         method_description: str
     ) -> str:
         """질문 생성을 위한 프롬프트 작성"""
         
-        investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
-        
         # 업종별 맞춤 가이드
-        industry_context = self._get_industry_specific_context(business_description, method)
+        industry_context = self._get_industry_specific_context(concept, method)
         
         return f"""
 당신은 창업 컨설턴트입니다.
 
 아래 사업을 분석 중입니다:
-"{business_description}"
+"{concept}"
 
 {industry_context}
 
@@ -245,14 +235,14 @@ SUGGESTION: 예: '온라인 중고 도서 거래 플랫폼 서비스', 'AI 기�
 
 3. 정확히 2~3개의 질문만 생성하세요
 
-4. 각 질문은 "{business_description}" 사업에만 해당하는 구체적인 내용이어야 합니다
+4. 각 질문은 "{concept}" 사업에만 해당하는 구체적인 내용이어야 합니다
 
 **출력 형식:**
 Q1: [질문] | text |
 Q2: [질문] | number |
 Q3: [질문] | text |
 
-지금 바로 "{business_description}" 사업을 위한 구체적인 질문을 만드세요!
+지금 바로 "{concept}" 사업을 위한 구체적인 질문을 만드세요!
 """
     
     def _parse_questions_from_gpt_response(
@@ -307,52 +297,52 @@ Q3: [질문] | text |
         
         return questions
     
-    def _get_industry_specific_context(self, business_description: str, method: AnalysisMethod) -> str:
+    def _get_industry_specific_context(self, concept: str, method: AnalysisMethod) -> str:
         """업종별 특화된 질문 가이드 제공"""
-        description_lower = business_description.lower()
+        concept_lower = concept.lower()
         
         # 업종 감지
-        if any(kw in description_lower for kw in ["앱", "소프트웨어", "플랫폼", "IT", "개발", "스타트업", "웹", "모바일"]):
+        if any(kw in concept_lower for kw in ["앱", "소프트웨어", "플랫폼", "IT", "개발", "스타트업", "웹", "모바일"]):
             return f"""
 이 사업은 IT/앱 분야입니다. 이런 질문을 만드세요:
-✅ "{business_description}"를 개발할 개발자가 있나요? 몇 명이며 언제 완성되나요?
-✅ "{business_description}"와 비슷한 앱/서비스가 있나요? 이름이 뭐고 뭐가 다른가요?
-✅ 첫 달에 "{business_description}"를 사용할 사람이 몇 명 정도 될까요?
+✅ "{concept}"를 개발할 개발자가 있나요? 몇 명이며 언제 완성되나요?
+✅ "{concept}"와 비슷한 앱/서비스가 있나요? 이름이 뭐고 뭐가 다른가요?
+✅ 첫 달에 "{concept}"를 사용할 사람이 몇 명 정도 될까요?
 """
-        elif any(kw in description_lower for kw in ["교육", "학습", "강의", "학원", "에듀테크", "교육용"]):
+        elif any(kw in concept_lower for kw in ["교육", "학습", "강의", "학원", "에듀테크", "교육용"]):
             return f"""
 이 사업은 교육 분야입니다. 이런 질문을 만드세요:
-✅ "{business_description}"에서 가르칠 강사/선생님이 있나요? 몇 명인가요?
-✅ "{business_description}"의 수강료는 얼마이며, 한 달에 학생이 몇 명 필요한가요?
-✅ "{business_description}"를 통해 학습하면 어떤 결과가 나오나요? (성적? 자격증?)
+✅ "{concept}"에서 가르칠 강사/선생님이 있나요? 몇 명인가요?
+✅ "{concept}"의 수강료는 얼마이며, 한 달에 학생이 몇 명 필요한가요?
+✅ "{concept}"를 통해 학습하면 어떤 결과가 나오나요? (성적? 자격증?)
 """
-        elif any(kw in description_lower for kw in ["제조", "생산", "공장", "설비", "제품 생산", "양산"]):
+        elif any(kw in concept_lower for kw in ["제조", "생산", "공장", "설비", "제품 생산", "양산"]):
             return f"""
 이 사업은 제조 분야입니다. 이런 질문을 만드세요:
-✅ "{business_description}" 제품을 만들 설비(기계)가 있나요? 얼마인가요?
-✅ 하루에 "{business_description}" 제품을 몇 개 만들 수 있나요?
-✅ "{business_description}" 제품의 불량률은 몇 %인가요?
+✅ "{concept}" 제품을 만들 설비(기계)가 있나요? 얼마인가요?
+✅ 하루에 "{concept}" 제품을 몇 개 만들 수 있나요?
+✅ "{concept}" 제품의 불량률은 몇 %인가요?
 """
-        elif any(kw in description_lower for kw in ["외식", "음식점", "카페", "레스토랑", "서비스", "매장", "가게"]):
+        elif any(kw in concept_lower for kw in ["외식", "음식점", "카페", "레스토랑", "서비스", "매장", "가게"]):
             return f"""
 이 사업은 서비스/외식 분야입니다. 이런 질문을 만드세요:
-✅ "{business_description}" 가게 위치는 어디이며, 하루 유동인구는 몇 명인가요?
-✅ "{business_description}"에서 판매할 제품의 원가는 판매가의 몇 %인가요?
-✅ 근처에 "{business_description}"와 비슷한 가게가 몇 개 있나요?
+✅ "{concept}" 가게 위치는 어디이며, 하루 유동인구는 몇 명인가요?
+✅ "{concept}"에서 판매할 제품의 원가는 판매가의 몇 %인가요?
+✅ 근처에 "{concept}"와 비슷한 가게가 몇 개 있나요?
 """
-        elif any(kw in description_lower for kw in ["마케팅", "광고", "브랜드", "홍보", "프로모션"]):
+        elif any(kw in concept_lower for kw in ["마케팅", "광고", "브랜드", "홍보", "프로모션"]):
             return f"""
 이 사업은 마케팅 분야입니다. 이런 질문을 만드세요:
-✅ "{business_description}"의 타겟 고객은 정확히 누구인가요? (나이, 성별, 직업)
-✅ "{business_description}" 광고 예산은 얼마이며, 어디에 쓸 건가요?
-✅ "{business_description}" 효과를 어떻게 측정할 건가요?
+✅ "{concept}"의 타겟 고객은 정확히 누구인가요? (나이, 성별, 직업)
+✅ "{concept}" 광고 예산은 얼마이며, 어디에 쓸 건가요?
+✅ "{concept}" 효과를 어떻게 측정할 건가요?
 """
         else:
             return f"""
 이런 질문을 만드세요:
-✅ "{business_description}"의 고객은 누구이며, 왜 우리를 선택해야 하나요?
-✅ "{business_description}"로 한 달에 얼마를 벌 수 있나요?
-✅ "{business_description}"와 경쟁하는 업체는 어디인가요?
+✅ "{concept}"의 고객은 누구이며, 왜 우리를 선택해야 하나요?
+✅ "{concept}"로 한 달에 얼마를 벌 수 있나요?
+✅ "{concept}"와 경쟁하는 업체는 어디인가요?
 """
     
     def _get_fallback_questions(
@@ -404,9 +394,7 @@ Q3: [질문] | text |
     
     def generate_risk_report(
         self,
-        business_name: str,
-        business_description: str,
-        investment_amount: Optional[int],
+        concept: str,
         methods: List[AnalysisMethod],
         questions: List[Question],
         answers: List[Answer],
@@ -416,9 +404,7 @@ Q3: [질문] | text |
         OSD 기반 최종 리스크 보고서 생성
         
         Args:
-            business_name: 사업명
-            business_description: 사업 내용
-            investment_amount: 투자금액
+            concept: 사업 아이디어/컨셉
             methods: 사용된 분석 기법
             questions: 질문 목록
             answers: 사용자 답변 목록
@@ -430,13 +416,12 @@ Q3: [질문] | text |
         # 질문-답변 매핑
         qa_map = {answer.question_id: answer.answer for answer in answers}
         
-        prompt = self._create_osd_report_prompt(
-            business_name,
-            business_description,
-            investment_amount,
+        prompt = self._create_report_generation_prompt(
+            concept,
             methods,
             questions,
             qa_map
+        )
         )
         
         try:
@@ -482,9 +467,7 @@ Q3: [질문] | text |
     
     def _create_report_generation_prompt(
         self,
-        business_name: str,
-        business_description: str,
-        investment_amount: Optional[int],
+        concept: str,
         methods: List[AnalysisMethod],
         questions: List[Question],
         qa_map: Dict[str, str]
@@ -506,15 +489,11 @@ Q3: [질문] | text |
             "기본": "발생가능성→O, 심각도→S, 발견가능성→D"
         }
         
-        investment_info = f"{investment_amount:,}원" if investment_amount else "미정"
-        
         return f"""
 다음 사업에 대한 OSD 기반 종합 리스크 분석 보고서를 작성해주세요.
 
 **사업 정보:**
-- 사업명: {business_name}
-- 사업 내용: {business_description}
-- 투자금액: {investment_info}
+- 사업 아이디어: {concept}
 
 **사용된 분석 기법:**
 {', '.join([m.value for m in methods])}
